@@ -1,9 +1,9 @@
 from machine import Pin
 from micropython import schedule
-LL_PIN = const(8)
-L_PIN = const(9)
-R_PIN = const(10)
-RR_PIN = const(11)
+LL_PIN = const(11)
+L_PIN = const(10)
+R_PIN = const(9)
+RR_PIN = const(8)
 
 class LineSensors:
     def __init__(self, cb):
@@ -30,8 +30,9 @@ class LineSensors:
         self.buf[3] = self.rr_sensor.value()
         return self.buf
     
-    def on_change(self):
-        schedule(self.cb,self.read())
+    def on_change(self, _):
+        # self.cb(self.read()) # if schedule is still too slow
+        schedule(self.cb, self.read())
         pass
 
     def deactivate_central_trackers(self):

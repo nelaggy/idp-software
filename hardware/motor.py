@@ -34,11 +34,11 @@ class Motors:
         '''
         if l_speed is not None:
             self.l_speed = max(0, min(100,l_speed)) # clamp speed between 0, 100
-            self.l_motor_spd.duty_u16(65535*self.l_speed/100) # speed
+            self.l_motor_spd.duty_u16(int(65535*self.l_speed/100)) # speed
         
         if r_speed is not None:
             self.r_speed = max(0, min(100,r_speed)) # clamp speed between 0, 100
-            self.r_motor_spd.duty_u16(65535*self.r_speed/100) # speed
+            self.r_motor_spd.duty_u16(int(65535*self.r_speed/100)) # speed
         
  
     def wheel_direction(self,l_wheel_dir=None, r_wheel_dir=None):
