@@ -33,7 +33,10 @@ class LineSensors:
     def on_change(self, _):
         # self.cb(self.read()) # if schedule is still too slow
         schedule(self.cb, self.read())
-        pass
+        return
+
+    def set_callback(self, cb):
+        self.cb = cb
 
     def deactivate_central_trackers(self):
         self.l_sensor.irq(handler=None)

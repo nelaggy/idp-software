@@ -22,9 +22,9 @@ from navigation.navigator import Navigator
 
 
 class OnRoadController:
-    def __init__(self) -> None:
-        self.sensors = LineSensors(self.on_change)
-        self.wheels = Motors()
+    def __init__(self, line_sensors, wheels) -> None:
+        self.line_sensors = line_sensors
+        self.wheels = wheels
         self.navigator = Navigator()
 
     def on_change(self, values: bytearray) -> None:
@@ -76,6 +76,9 @@ class OnRoadController:
             self.junction()
             return
         
+    def activate(self) -> None:
+        self.line_sensors.set_callback(self.on_change)
+        self.line_sensors.activate_central_trackers()
 
     def lost(self) -> None:
         print('lost')
