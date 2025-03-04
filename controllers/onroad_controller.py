@@ -1,5 +1,6 @@
 from hardware.line_sensor import LineSensors
 from hardware.motor import Motors
+from navigation.navigator import Navigator
 
 # cases
 # 0000 - lost: move in random directions
@@ -20,10 +21,11 @@ from hardware.motor import Motors
 # 1111 - T-junction or crossroad
 
 
-class Controller:
+class OnRoadController:
     def __init__(self) -> None:
         self.sensors = LineSensors(self.on_change)
         self.wheels = Motors()
+        self.navigator = Navigator()
 
     def on_change(self, values: bytearray) -> None:
         if values == b'\0\0\0\0':
@@ -85,12 +87,20 @@ class Controller:
 
     def off_right(self) -> None:
         print('off right')
-        self.wheels.wheel_speed(100, 50)
+        self.wheels.wheel_speed(100, 90)
 
     def off_left(self) -> None:
         print('off left')
-        self.wheels.wheel_speed(50, 100)
+        self.wheels.wheel_speed(90, 100)
 
     def junction(self) -> None:
         print('junction')
-        self.wheels.stop()
+        turn = self.navigator.get_turn()
+        if turn == 0:
+            self.wheels.wheel_speed(100, 100)
+        elif turn == 1:
+            self.wheels.wheel_speed(100, 20)
+        elif turn == 2:
+            self.wheels.stop()
+        elif turn == 3:
+            self.wheels.wheel_speed(20, 100)
