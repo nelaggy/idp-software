@@ -27,53 +27,49 @@ class OnRoadController:
         self.wheels = wheels
         self.navigator = Navigator()
 
+        self.kp = 0.5
+        self.ki = 0.1
+        self.kd = 0.1
+
+        self.i = 0
+        self.d = 0
+        self.err = 0
+        self.turning = False
+
+        self.lspeed = 0
+        self.rspeed = 0
+        # self.targetlspeed = 0
+        # self.targetrspeed = 0
+
     def on_change(self, values: bytearray) -> None:
-        if values == b'\0\0\0\0':
+        err = 3*values[3] + values[2] - values[1] - 3*values[0]
+        self.i += err
+        self.d = err - self.err
+        self.err = err
+        pid = self.kp * err + self.ki * self.i + self.kd * self.d
+        self.lspeed -= pid
+        self.rspeed += pid
+
+        # limit between 0 and 100 (preserves l_speed/r_speed ratio)
+        # TODO: consider preserving difference instead
+        if abs(self.lspeed) > 100:
+            self.rspeed = self.rspeed / abs(self.lspeed) * 100
+            self.lspeed = self.lspeed / abs(self.lspeed) * 100
+        if abs(self.rspeed) > 100:
+            self.lspeed = self.lspeed / abs(self.rspeed) * 100
+            self.rspeed = self.rspeed / abs(self.rspeed) * 100
+        self.wheels.wheel_speed(self.lspeed, self.rspeed)
+
+        if values == b'\x00\x00\x00\x00':
             self.lost()
             return
-        if values == b'\0\0\0\1':
-            self.off_left()
-            return
-        if values == b'\0\0\1\0':
-            self.off_left()
-            return
-        if values == b'\0\0\1\1':
+
+        if (values[0] == 1 or values[3] == 1) and not self.turning:
             self.junction()
             return
-        if values == b'\0\1\0\0':
-            self.off_right()
-            return
-        if values == b'\0\1\0\1':
-            self.junction()
-            return
-        if values == b'\0\1\1\0':
-            self.on_line()
-            return
-        if values == b'\0\1\1\1':
-            self.junction()
-            return
-        if values == b'\1\0\0\0':
-            self.off_right()
-            return
-        if values == b'\1\0\0\1':
-            return
-        if values == b'\1\0\1\0':
-            self.junction()
-            return
-        if values == b'\1\0\1\1':
-            self.junction()
-            return
-        if values == b'\1\1\0\0':
-            self.junction()
-            return
-        if values == b'\1\1\0\1':
-            self.junction()
-            return
-        if values == b'\1\1\1\0':
-            self.junction()
-            return
-        if values == b'\1\1\1\1':
-            self.junction()
+
+        if self.turning and (values[0] == 0 and values[3] == 0):
+            self.turning = False
             return
         
     def activate(self) -> None:
@@ -98,12 +94,19 @@ class OnRoadController:
 
     def junction(self) -> None:
         print('junction')
+        self.turning = True
         turn = self.navigator.get_turn()
         if turn == 0:
-            self.wheels.wheel_speed(100, 100)
+            self.lspeed = 100
+            self.rspeed = 100
+            self.wheels.wheel_speed(self.lspeed, self.rspeed)
         elif turn == 1:
-            self.wheels.wheel_speed(100, 20)
+            self.lspeed = 100
+            self.rspeed = -40
+            self.wheels.wheel_speed(self.lspeed, self.rspeed)
         elif turn == 2:
             self.wheels.stop()
         elif turn == 3:
-            self.wheels.wheel_speed(20, 100)
+            self.lspeed = -40
+            self.rspeed = 100
+            self.wheels.wheel_speed(self.lspeed, self.rspeed)
