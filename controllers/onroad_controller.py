@@ -22,10 +22,10 @@ from navigation.navigator import Navigator
 
 
 class OnRoadController:
-    def __init__(self, line_sensors, wheels) -> None:
+    def __init__(self, line_sensors, wheels, navigator) -> None:
         self.line_sensors = line_sensors
         self.wheels = wheels
-        self.navigator = Navigator()
+        self.navigator = navigator
 
         self.kp = 0.5
         self.ki = 0.1
@@ -38,11 +38,9 @@ class OnRoadController:
 
         self.lspeed = 0
         self.rspeed = 0
-        # self.targetlspeed = 0
-        # self.targetrspeed = 0
 
     def on_change(self, values: bytearray) -> None:
-        err = 3*values[3] + values[2] - values[1] - 3*values[0]
+        err = 3*values[0] + values[1] - values[2] - 3*values[3]
         self.i += err
         self.d = err - self.err
         self.err = err
@@ -74,23 +72,12 @@ class OnRoadController:
         
     def activate(self) -> None:
         self.line_sensors.set_callback(self.on_change)
-        self.line_sensors.activate_central_trackers()
 
     def lost(self) -> None:
         print('lost')
-        self.wheels.stop()
-
-    def on_line(self) -> None:
-        print('on line')
-        self.wheels.wheel_speed(100, 100)
-
-    def off_right(self) -> None:
-        print('off right')
-        self.wheels.wheel_speed(100, 90)
-
-    def off_left(self) -> None:
-        print('off left')
-        self.wheels.wheel_speed(90, 100)
+        self.lspeed = 100
+        self.rspeed = 100
+        self.wheels.wheel_speed(self.lspeed, self.rspeed)
 
     def junction(self) -> None:
         print('junction')
@@ -110,3 +97,6 @@ class OnRoadController:
             self.lspeed = -40
             self.rspeed = 100
             self.wheels.wheel_speed(self.lspeed, self.rspeed)
+        else:
+            # switch to off road control
+            return
