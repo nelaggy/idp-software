@@ -64,7 +64,7 @@ class OffRoadController:
 
         if not self.pickup: # follow line if not self.pickup activated
             error = 3*values[0] + values[1] - values[2] - 3*values[3]
-            if error is None: # detects all black
+            if values == b'\x00\x00\x00\x00': # detects all black
                 self.lost()
                 return
             self.I += error
@@ -107,7 +107,7 @@ class OffRoadController:
                 break
             
             error = 3*values[0] + values[1] - values[2] - 3*values[3]
-            if error is None:  # detects all black
+            if values == b'\x00\x00\x00\x00': # detects all black
                 self.lost()
                 return
             self.I += error
@@ -173,7 +173,7 @@ class OffRoadControllerTest:
 
         if not self.pickup: # follow line if not self.pickup activated
             error = 3*values[0] + values[1] - values[2] - 3*values[3]
-            if error is None: # detects all black
+            if values == b'\x00\x00\x00\x00': # detects all black
                 self.lost()
                 return
             self.I += error
@@ -214,7 +214,7 @@ class OffRoadControllerTest:
                 break
             
             error = 3*values[0] + values[1] - values[2] - 3*values[3]
-            if error is None:  # detects all black
+            if values == b'\x00\x00\x00\x00': # detects all black
                 self.lost()
                 return
             self.I += error
