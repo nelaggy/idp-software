@@ -27,9 +27,9 @@ class OnRoadController:
         self.wheels = wheels
         self.navigator = navigator
 
-        self.kp = 0.5
-        self.ki = 0.1
-        self.kd = 0.1
+        self.kp = 5
+        self.ki = 0
+        self.kd = 0
 
         self.i = 0
         self.d = 0
@@ -38,6 +38,8 @@ class OnRoadController:
 
         self.lspeed = 0
         self.rspeed = 0
+        self.target_lspeed = 100
+        self.target_rspeed = 100
 
     def on_change(self, values: bytearray) -> None:
         err = 3*values[0] + values[1] - values[2] - 3*values[3]
@@ -45,39 +47,44 @@ class OnRoadController:
         self.d = err - self.err
         self.err = err
         pid = self.kp * err + self.ki * self.i + self.kd * self.d
-        self.lspeed -= pid
-        self.rspeed += pid
+        self.lspeed = self.target_lspeed - pid
+        self.rspeed = self.target_rspeed + pid
+        print(pid, self.lspeed, self.rspeed, values)
 
         # limit between 0 and 100 (preserves l_speed/r_speed ratio)
         # TODO: consider preserving difference instead
-        if abs(self.lspeed) > 100:
-            self.rspeed = self.rspeed / abs(self.lspeed) * 100
-            self.lspeed = self.lspeed / abs(self.lspeed) * 100
-        if abs(self.rspeed) > 100:
-            self.lspeed = self.lspeed / abs(self.rspeed) * 100
-            self.rspeed = self.rspeed / abs(self.rspeed) * 100
+        # if abs(self.lspeed) > 100:
+        #     self.rspeed = self.rspeed / abs(self.lspeed) * 100
+        #     self.lspeed = self.lspeed / abs(self.lspeed) * 100
+        # if abs(self.rspeed) > 100:s
+        #     self.lspeed = self.lspeed / abs(self.rspeed) * 100
+        #     self.rspeed = self.rspeed / abs(self.rspeed) * 100
         self.wheels.wheel_speed(self.lspeed, self.rspeed)
 
         if values == b'\x00\x00\x00\x00':
             self.lost()
             return
 
-        if (values[0] == 1 or values[3] == 1) and not self.turning:
-            self.junction()
-            return
+        # if (values[0] == 1 or values[3] == 1) and not self.turning and (values[1] == 1 and values[2] == 1):
+        #     # self.junction()
+        #     return
 
-        if self.turning and (values[0] == 0 and values[3] == 0):
-            self.turning = False
-            return
+        # if self.turning and (values[0] == 0 and values[3] == 0):
+        #     self.lspeed = 100
+        #     self.rspeed = 100
+        #     self.wheels.wheel_speed(self.lspeed, self.rspeed)
+        #     self.turning = False
+        #     return
         
     def activate(self) -> None:
         self.line_sensors.set_callback(self.on_change)
 
     def lost(self) -> None:
         print('lost')
-        self.lspeed = 100
-        self.rspeed = 100
-        self.wheels.wheel_speed(self.lspeed, self.rspeed)
+        self.wheels.stop()
+        # self.lspeed = 100
+        # self.rspeed = 100
+        # self.wheels.wheel_speed(self.lspeed, self.rspeed)
 
     def junction(self) -> None:
         print('junction')

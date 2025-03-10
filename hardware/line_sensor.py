@@ -6,7 +6,7 @@ R_PIN = const(9)
 RR_PIN = const(8)
 
 class LineSensors:
-    def __init__(self, cb, dt=50):
+    def __init__(self, cb, dt=10):
         self.buf = bytearray(4)
         self.on_line = False
         self.turning_flag = False
