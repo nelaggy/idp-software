@@ -4,14 +4,11 @@ from dummy.tcs34725 import TCS34725
 import time
 
 
-i2c_bus = I2C(0, sda=Pin(16), scl=Pin(17))
-tcs = TCS34725(i2c_bus)
-
 class colour_sensor:
 
     def __init__(self, sda_pin=16, scl_pin=17):
         self.i2c_bus = I2C(0, sda=Pin(sda_pin), scl=Pin(scl_pin))
-        self.tcs = TCS34725(i2c_bus)
+        self.tcs = TCS34725(self.i2c_bus)
 
         # 0 - blue/green, 1 - yellow/red
         self.station_colour = [None,None,None,None]
