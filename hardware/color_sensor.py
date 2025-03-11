@@ -37,6 +37,7 @@ class colour_sensor:
         
         cct_average = cct_sum/n
         self.station_colour[station] = 0 if cct_average>8000 else 1
+        return self.station_colour
 
     def reset(self):
         self.station_colour = [None,None,None,None]
