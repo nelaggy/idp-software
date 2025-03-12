@@ -4,7 +4,7 @@ from time import sleep
 # Connect servo to J35
 # Servo rotates to an angle determined by width of duty cycle
 
-class servo:
+class Servo:
 
     def __init__(self,pin = 15, freq = 50):
         self.servo = PWM(Pin(pin))

@@ -1,6 +1,8 @@
 from hardware.line_sensor import LineSensors
 from hardware.motor import Motors
+from hardware.servo import Servo
 from navigation.navigator import Navigator
+from micropython import schedule
 
 # cases
 # 0000 - lost: move in random directions
@@ -22,10 +24,12 @@ from navigation.navigator import Navigator
 
 
 class OnRoadController:
-    def __init__(self, line_sensors, wheels, navigator) -> None:
+    def __init__(self, line_sensors: LineSensors, wheels: Motors, servo: Servo, navigator: Navigator, on_complete) -> None:
         self.line_sensors = line_sensors
         self.wheels = wheels
+        self.servo = servo
         self.navigator = navigator
+        self.on_complete = on_complete
 
         self.kp = 10
         self.ki = 0.1
@@ -86,6 +90,9 @@ class OnRoadController:
     def junction(self) -> None:
         self.turning = True
         turn = self.navigator.get_turn()
+        if self.navigator.next_node == self.navigator.destination:
+            schedule(self.servo.drop, None)
+            pass
         print('turn: ', turn)
         if turn == 0:
             self.target_lspeed = 90
@@ -99,5 +106,5 @@ class OnRoadController:
             self.target_lspeed = 70
             self.target_rspeed = 20
         else:
-            # switch to off road control
+            self.on_complete()
             return
