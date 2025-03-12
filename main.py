@@ -17,7 +17,7 @@ class MainController:
         self.servo = Servo()
         self.onroad_controller = OnRoadController(self.line_sensors, self.wheels, self.servo, self.navigator, self.go_offroad)
         self.offroad_controller = OffRoadController(self.line_sensors, self.wheels, self.go_onroad)
-        self.navigator.set_destination(5)
+        self.navigator.set_destination(1)
 
         self.start_box_flag = True
         self.carrying_block = False
@@ -36,9 +36,7 @@ class MainController:
         if self.start_box_flag:
             self.start_box_flag = False
             self.navigator.set_destination(16)
-            self.offroad_controller.activate()
             return
-        
         # pass dropoff=self.carrying_block
         self.offroad_controller.activate()
         self.carrying_block = not self.carrying_block

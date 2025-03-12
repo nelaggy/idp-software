@@ -238,7 +238,6 @@ class OffRoadController:
     
 
     def lost(self) -> None:
-        print('lost')
         self.wheels.stop()
     
     def pickup_box(self) -> None:
