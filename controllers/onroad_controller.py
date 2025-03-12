@@ -36,10 +36,8 @@ class OnRoadController:
         self.err = 0
         self.turning = False
 
-        self.lspeed = 0
-        self.rspeed = 0
-        self.target_lspeed = 100
-        self.target_rspeed = 100
+        self.target_lspeed = 90
+        self.target_rspeed = 90
 
     def on_change(self, values: bytearray) -> None:
         err = 3*values[0] + values[1] - values[2] - 3*values[3]
@@ -47,8 +45,9 @@ class OnRoadController:
         self.d = err - self.err
         self.err = err
         pid = self.kp * err + self.ki * self.i + self.kd * self.d
-        self.lspeed = self.target_lspeed - pid
-        self.rspeed = self.target_rspeed + pid
+        lspeed = self.target_lspeed - pid
+        rspeed = self.target_rspeed + pid
+        print(pid, lspeed, rspeed, values)
 
         # limit between 0 and 100 (preserves l_speed/r_speed ratio)
         # TODO: consider preserving difference instead
@@ -58,22 +57,21 @@ class OnRoadController:
         # if abs(self.rspeed) > 100:s
         #     self.lspeed = self.lspeed / abs(self.rspeed) * 100
         #     self.rspeed = self.rspeed / abs(self.rspeed) * 100
-        self.wheels.wheel_speed(self.lspeed, self.rspeed)
+        self.wheels.wheel_speed(lspeed, rspeed)
 
         if values == b'\x00\x00\x00\x00':
             self.lost()
             return
 
-        # if (values[0] == 1 or values[3] == 1) and not self.turning and (values[1] == 1 and values[2] == 1):
-        #     # self.junction()
-        #     return
+        if (values[0] == 1 or values[3] == 1) and not self.turning and (values[1] == 1 and values[2] == 1):
+            self.junction()
+            return
 
-        # if self.turning and (values[0] == 0 and values[3] == 0):
-        #     self.lspeed = 100
-        #     self.rspeed = 100
-        #     self.wheels.wheel_speed(self.lspeed, self.rspeed)
-        #     self.turning = False
-        #     return
+        if self.turning and (values[0] == 0 and values[3] == 0):
+            self.target_lspeed = 100
+            self.target_rspeed = 100
+            self.turning = False
+            return
         
     def activate(self) -> None:
         self.line_sensors.set_callback(self.on_change)
@@ -88,19 +86,16 @@ class OnRoadController:
         self.turning = True
         turn = self.navigator.get_turn()
         if turn == 0:
-            self.lspeed = 100
-            self.rspeed = 100
-            self.wheels.wheel_speed(self.lspeed, self.rspeed)
+            self.target_lspeed = 90
+            self.target_rspeed = 90
         elif turn == 1:
-            self.lspeed = 100
-            self.rspeed = -40
-            self.wheels.wheel_speed(self.lspeed, self.rspeed)
+            self.target_lspeed = 90
+            self.target_rspeed = 0
         elif turn == 2:
             self.wheels.stop()
         elif turn == 3:
-            self.lspeed = -40
-            self.rspeed = 100
-            self.wheels.wheel_speed(self.lspeed, self.rspeed)
+            self.target_lspeed = 0
+            self.target_rspeed = 90
         else:
             # switch to off road control
             return
