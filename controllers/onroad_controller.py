@@ -49,7 +49,6 @@ class OnRoadController:
         pid = self.kp * err + self.ki * self.i + self.kd * self.d
         self.lspeed = self.target_lspeed - pid
         self.rspeed = self.target_rspeed + pid
-        print(pid, self.lspeed, self.rspeed, values)
 
         # limit between 0 and 100 (preserves l_speed/r_speed ratio)
         # TODO: consider preserving difference instead
@@ -80,14 +79,12 @@ class OnRoadController:
         self.line_sensors.set_callback(self.on_change)
 
     def lost(self) -> None:
-        print('lost')
         self.wheels.stop()
         # self.lspeed = 100
         # self.rspeed = 100
         # self.wheels.wheel_speed(self.lspeed, self.rspeed)
 
     def junction(self) -> None:
-        print('junction')
         self.turning = True
         turn = self.navigator.get_turn()
         if turn == 0:
