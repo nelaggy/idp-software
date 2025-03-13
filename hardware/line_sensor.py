@@ -32,8 +32,9 @@ class LineSensors:
         return self.buf
     
     def on_change(self, _):
-        self.cb(self.read()) # if schedule is still too slow
-        # schedule(self.cb, self.read())
+        if not self.cb:
+            return
+        self.cb(self.read())
         return
 
     def set_callback(self, cb, dt=50):
