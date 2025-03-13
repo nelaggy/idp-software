@@ -3,6 +3,7 @@ from hardware.motor import Motors
 from hardware.servo import Servo
 from navigation.navigator import Navigator
 from micropython import schedule
+from time import sleep_ms
 
 # cases
 # 0000 - lost: move in random directions
@@ -32,8 +33,8 @@ class OnRoadController:
         self.on_complete = on_complete
 
         self.kp = 10
-        self.ki = 0.1
-        self.kd = 2
+        self.ki = 0.0015
+        self.kd = 0
 
         self.i = 0
         self.d = 0
@@ -46,6 +47,7 @@ class OnRoadController:
         self.target_rspeed = 90
 
     def on_change(self, values: bytearray) -> None:
+        
         err = 3*values[0] + values[1] - values[2] - 3*values[3]
         self.i += err
         self.d = err - self.err
@@ -53,15 +55,6 @@ class OnRoadController:
         pid = self.kp * err + self.ki * self.i + self.kd * self.d
         lspeed = self.target_lspeed - pid
         rspeed = self.target_rspeed + pid
-
-        # limit between 0 and 100 (preserves l_speed/r_speed ratio)
-        # TODO: consider preserving difference instead
-        # if abs(self.lspeed) > 100:
-        #     self.rspeed = self.rspeed / abs(self.lspeed) * 100
-        #     self.lspeed = self.lspeed / abs(self.lspeed) * 100
-        # if abs(self.rspeed) > 100:s
-        #     self.lspeed = self.lspeed / abs(self.rspeed) * 100
-        #     self.rspeed = self.rspeed / abs(self.rspeed) * 100
         self.wheels.wheel_speed(lspeed, rspeed)
 
 
@@ -73,33 +66,40 @@ class OnRoadController:
             self.junction()
             return
         
-        # if self.turn_dir != 0:
-        #     print(values)
-        
-        if self.turn_dir == 1:
-            if self.turn_stage == 0 and values[3] == 0:
+        if self.turning and self.turn_dir == 1:
+            if self.turn_stage == 0 and values[3] == 1:
                 self.turn_stage += 1
                 return
-            if self.turn_stage == 1 and values[3] == 1:
+            if self.turn_stage == 1 and values[3] == 0:
+                self.turn_stage += 1
+                return
+            if self.turn_stage == 2 and values[3] == 1:
                 print('end turn')
                 self.turning = False
                 self.turn_stage = 0
                 self.turn_dir = 0
                 self.target_lspeed = 90
                 self.target_rspeed = 90
+                # if self.navigator.next_node == self.navigator.destination and self.navigator.node != 1:
+                #     self.on_complete()
                 return
         
-        if self.turn_dir == 3:
-            if self.turn_stage == 0 and values[0] == 0:
+        if self.turning and self.turn_dir == 3:
+            if self.turn_stage == 0 and values[0] == 1:
                 self.turn_stage += 1
                 return
-            if self.turn_stage == 1 and values[0] == 1:
+            if self.turn_stage == 1 and values[0] == 0:
+                self.turn_stage += 1
+                return
+            if self.turn_stage == 2 and values[0] == 1:
                 print('end turn')
                 self.turning = False
                 self.turn_stage = 0
                 self.turn_dir = 0
                 self.target_lspeed = 90
                 self.target_rspeed = 90
+                # if self.navigator.next_node == self.navigator.destination and self.navigator.node != 1:
+                #     self.on_complete()
                 return
 
         if self.turn_dir <= 0 and self.turning and (values[0] == 0 and values[3] == 0) and (values[1] == 1 and values[2] == 1):
@@ -108,6 +108,8 @@ class OnRoadController:
             self.target_lspeed = 90
             self.target_rspeed = 90
             self.turn_dir = 0
+            # if self.navigator.next_node == self.navigator.destination and self.navigator.node != 1:
+            #     self.on_complete()
             return
         
         if self.turning:
@@ -117,18 +119,21 @@ class OnRoadController:
         self.line_sensors.set_callback(self.on_change)
 
     def lost(self) -> None:
-        # self.wheels.stop()
         self.target_lspeed = 90
         self.target_rspeed = 90
 
     def junction(self) -> None:
         turn = self.navigator.get_turn()
-        self.turning = True
         self.turn_dir = turn
-        if self.navigator.next_node == self.navigator.destination and self.navigator.destination != 1:
-            schedule(self.servo.drop, None)
-            pass
         print('turn: ', turn)
+        if self.navigator.next_node == self.navigator.destination and self.navigator.destination != 1:
+            print('arriving')
+            schedule(self.entrance_turn, 900)
+            return
+        self.turning = True
+        print('not arriving')
+        if self.navigator.node == 12 or self.navigator.node == 15:
+            self.turn_stage = 1
         if turn == 0:
             self.target_lspeed = 90
             self.target_rspeed = 90
@@ -141,4 +146,41 @@ class OnRoadController:
             self.target_lspeed = 90
             self.target_rspeed = 0
         else:
+            print('off')
             self.on_complete()
+
+    def entrance_turn_handler(self, values: bytearray) -> None:
+        sign = 1 if self.turn_dir == 1 else -1
+        idx = 0 if self.turn_dir == 1 else 3
+        if self.turn_stage == 0 and values[idx] == 1:
+            print('check 1')
+            self.turn_stage += 1
+            return
+        if self.turn_stage == 1 and values[idx + sign] == 1:
+            print('check 2')
+            self.turn_stage += 1
+            return
+        if self.turn_stage == 2 and values[idx + 2*sign] == 1:
+            print('turn complete')
+            self.wheels.stop()
+            self.on_complete()
+            return
+        
+
+    def entrance_turn(self, delay):
+        sleep_ms(delay)
+        self.turn_stage = 0
+        if self.turn_dir == 1:
+            print('on left')
+            self.wheels.wheel_speed(-50, 50)
+        elif self.turn_dir == 3:
+            print('on right')
+            self.wheels.wheel_speed(50, -50)
+        else:
+            print('straight ahead')
+            self.on_complete()
+            return
+        self.turn_stage = 0
+        self.line_sensors.set_callback(self.entrance_turn_handler)
+        return
+

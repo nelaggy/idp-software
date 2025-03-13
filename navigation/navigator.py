@@ -16,7 +16,7 @@ class Navigator:
         self.path = self.graph.paths.get((self.node, self.destination))
         if self.path is None:
             raise ValueError(f"Path from {self.node} to {self.destination} not found.")
-        self.next_node = self.path[self.cnt] if self.cnt < len(self.path) else self.destination
+        self.next_node = self.path[self.cnt]
 
     def change_direction(self, turn: int):
         self.direction = (self.direction + turn) % 4
@@ -32,8 +32,7 @@ class Navigator:
             return -1
         turn_direction = (self.direction - self.graph.edges[self.node][self.next_node][0]) % 4
         self.direction = self.graph.edges[self.node][self.next_node][0]
-
-        
+        print(self.node, self.next_node)
         
         return turn_direction
 
