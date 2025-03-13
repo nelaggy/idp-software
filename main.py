@@ -25,7 +25,7 @@ class MainController:
         self.servo.set_angle(90)
         self.destinations = [0, 17, 2, 19, 0, 18, 2]
         self.onroad_controller = OnRoadController(self.line_sensors, self.wheels, self.servo, self.navigator, self.go_offroad)
-        self.offroad_controller = OffRoadController(self.line_sensors, self.wheels, self.servo, self.go_onroad)
+        self.offroad_controller = OffRoadController(self.line_sensors, self.wheels, self.go_onroad)
 
     def toggle(self):
         print('toggle')
