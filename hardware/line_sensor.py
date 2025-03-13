@@ -19,10 +19,10 @@ class LineSensors:
         self.r_sensor = Pin(R_PIN, Pin.IN, Pin.PULL_UP)
         self.rr_sensor = Pin(RR_PIN, Pin.IN, Pin.PULL_DOWN)
 
-        # self.ll_sensor.irq(trigger=Pin.IRQ_FALLING|Pin.IRQ_RISING, handler=self.on_change)
-        # self.l_sensor.irq(trigger=Pin.IRQ_FALLING|Pin.IRQ_RISING, handler=self.on_change)
-        # self.r_sensor.irq(trigger=Pin.IRQ_FALLING|Pin.IRQ_RISING, handler=self.on_change)
-        # self.rr_sensor.irq(trigger=Pin.IRQ_FALLING|Pin.IRQ_RISING, handler=self.on_change)
+        # self.ll_sensor.irq(trigger=Pin.IRQ_RISING, handler=self.report)
+        # self.l_sensor.irq(trigger=Pin.IRQ_RISING, handler=self.report)
+        # self.r_sensor.irq(trigger=Pin.IRQ_RISING, handler=self.report)
+        # self.rr_sensor.irq(trigger=Pin.IRQ_RISING, handler=self.report)
     
     def read(self):
         self.buf[0] = self.ll_sensor.value()
@@ -48,3 +48,5 @@ class LineSensors:
         self.l_sensor.irq(trigger=Pin.IRQ_FALLING|Pin.IRQ_RISING, handler=self.on_change)
         self.r_sensor.irq(trigger=Pin.IRQ_FALLING|Pin.IRQ_RISING, handler=self.on_change)
         
+    def report(self, value):
+        print(value, self.read())
