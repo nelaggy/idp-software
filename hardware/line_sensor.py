@@ -1,15 +1,16 @@
-from machine import Pin
+from machine import Pin, Timer
 from micropython import schedule
-LL_PIN = const(8)
-L_PIN = const(9)
-R_PIN = const(10)
-RR_PIN = const(11)
+LL_PIN = const(11)
+L_PIN = const(10)
+R_PIN = const(9)
+RR_PIN = const(8)
 
 class LineSensors:
-    def __init__(self, cb):
+    def __init__(self, cb, dt=10):
         self.buf = bytearray(4)
         self.on_line = False
         self.turning_flag = False
+        self.timer = Timer(mode=Timer.PERIODIC, period=dt, callback=self.on_change)
 
         self.cb = cb
 
@@ -18,10 +19,10 @@ class LineSensors:
         self.r_sensor = Pin(R_PIN, Pin.IN, Pin.PULL_UP)
         self.rr_sensor = Pin(RR_PIN, Pin.IN, Pin.PULL_DOWN)
 
-        self.ll_sensor.irq(trigger=Pin.IRQ_FALLING|Pin.IRQ_RISING, handler=self.on_change)
-        self.l_sensor.irq(trigger=Pin.IRQ_FALLING|Pin.IRQ_RISING, handler=self.on_change)
-        self.r_sensor.irq(trigger=Pin.IRQ_FALLING|Pin.IRQ_RISING, handler=self.on_change)
-        self.rr_sensor.irq(trigger=Pin.IRQ_FALLING|Pin.IRQ_RISING, handler=self.on_change)
+        # self.ll_sensor.irq(trigger=Pin.IRQ_RISING, handler=self.report)
+        # self.l_sensor.irq(trigger=Pin.IRQ_RISING, handler=self.report)
+        # self.r_sensor.irq(trigger=Pin.IRQ_RISING, handler=self.report)
+        # self.rr_sensor.irq(trigger=Pin.IRQ_RISING, handler=self.report)
     
     def read(self):
         self.buf[0] = self.ll_sensor.value()
@@ -30,9 +31,15 @@ class LineSensors:
         self.buf[3] = self.rr_sensor.value()
         return self.buf
     
-    def on_change(self):
-        schedule(self.cb,self.read())
-        pass
+    def on_change(self, _):
+        if not self.cb:
+            return
+        self.cb(self.read())
+        return
+
+    def set_callback(self, cb, dt=50):
+        self.cb = cb
+        self.timer = Timer(mode=Timer.PERIODIC, period=dt, callback=self.on_change)
 
     def deactivate_central_trackers(self):
         self.l_sensor.irq(handler=None)
@@ -42,3 +49,5 @@ class LineSensors:
         self.l_sensor.irq(trigger=Pin.IRQ_FALLING|Pin.IRQ_RISING, handler=self.on_change)
         self.r_sensor.irq(trigger=Pin.IRQ_FALLING|Pin.IRQ_RISING, handler=self.on_change)
         
+    def report(self, value):
+        print(value, self.read())

@@ -20,4 +20,3 @@ This repository will contain code for the following:
 2. Before merging, *ensure code works*, then create a pull request. Do not push broken code to main
 
 ## Repository Structure
-TBC
