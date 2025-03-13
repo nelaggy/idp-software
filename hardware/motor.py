@@ -33,13 +33,13 @@ class Motors:
         Directions are handled by +- sign of speed
         '''
         if l_speed is not None:
-            self.l_speed = max(-100, min(100,l_speed)) # clamp speed between -100, 100
+            self.l_speed = abs(max(-100, min(100,l_speed))) # clamp speed between -100, 100
             self.l_dir = 1 if l_speed >= 0 else 0
             self.l_motor_dir.value(self.l_dir)
             self.l_motor_spd.duty_u16(int(65535*self.l_speed/100)) # speed
         
         if r_speed is not None:
-            self.r_speed = max(-100, min(100,r_speed)) # clamp speed between -100, 100
+            self.r_speed = abs(max(-100, min(100,r_speed))) # clamp speed between -100, 100
             self.r_dir = 1 if r_speed >= 0 else 0
             self.r_motor_dir.value(self.r_dir)
             self.r_motor_spd.duty_u16(int(65535*self.r_speed/100)) # speed
