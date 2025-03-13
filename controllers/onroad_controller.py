@@ -47,7 +47,6 @@ class OnRoadController:
         pid = self.kp * err + self.ki * self.i + self.kd * self.d
         lspeed = self.target_lspeed - pid
         rspeed = self.target_rspeed + pid
-        print(pid, lspeed, rspeed, values)
 
         # limit between 0 and 100 (preserves l_speed/r_speed ratio)
         # TODO: consider preserving difference instead
@@ -67,37 +66,39 @@ class OnRoadController:
             self.junction()
             return
 
-        if self.turning and (values[0] == 0 and values[3] == 0):
-            self.target_lspeed = 100
-            self.target_rspeed = 100
+        if self.turning and (values[0] == 0 and values[3] == 0) and (values[1] == 1 and values[2] == 1):
+            print('turn end')
+            self.target_lspeed = 90
+            self.target_rspeed = 90
             self.turning = False
             return
+        
+        if self.turning:
+            print(lspeed, rspeed)
         
     def activate(self) -> None:
         self.line_sensors.set_callback(self.on_change)
 
     def lost(self) -> None:
-        print('lost')
         self.wheels.stop()
         # self.lspeed = 100
         # self.rspeed = 100
         # self.wheels.wheel_speed(self.lspeed, self.rspeed)
 
     def junction(self) -> None:
-        print('junction')
         self.turning = True
         turn = self.navigator.get_turn()
         if turn == 0:
             self.target_lspeed = 90
             self.target_rspeed = 90
         elif turn == 1:
-            self.target_lspeed = 90
-            self.target_rspeed = 0
+            self.target_lspeed = 0
+            self.target_rspeed = 40
         elif turn == 2:
             self.wheels.stop()
         elif turn == 3:
-            self.target_lspeed = 0
-            self.target_rspeed = 90
+            self.target_lspeed = 40
+            self.target_rspeed = 0
         else:
             # switch to off road control
             return

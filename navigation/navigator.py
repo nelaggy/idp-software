@@ -30,7 +30,8 @@ class Navigator:
         turn_direction = (self.direction - self.graph.edges[self.node][self.next_node][0]) % 4
         self.direction = self.graph.edges[self.node][self.next_node][0]
         self.cnt += 1
-        self.next_node = self.path[self.cnt]
+        self.node = self.next_node
+        self.next_node = self.path[self.cnt] if self.cnt < len(self.path) else self.destination
         
         return turn_direction
 
