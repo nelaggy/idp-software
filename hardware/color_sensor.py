@@ -24,4 +24,4 @@ class ColourSensor:
         
         cct_average = cct_sum/n
         B_average = B_sum/n
-        return cct_average > 10000 or B_average > 10
+        return cct_average > 20000 or B_average > 20
