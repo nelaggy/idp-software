@@ -32,8 +32,8 @@ class OnRoadController:
         self.navigator = navigator
         self.on_complete = on_complete
 
-        self.kp = 10
-        self.ki = 0.0015
+        self.kp = 11
+        self.ki = 0.01
         self.kd = 0
 
         self.i = 0
@@ -48,6 +48,11 @@ class OnRoadController:
 
     def on_change(self, values: bytearray) -> None:
         
+        # if self.turning and self.turn_dir == 1:
+        #     err = 3*values[0] + values[1] - values[2] - 2*values[3]
+        # elif self.turning and self.turn_dir == 3:
+        #     err = 2*values[0] + values[1] - values[2] - 3*values[3]
+        # else:
         err = 3*values[0] + values[1] - values[2] - 3*values[3]
         self.i += err
         self.d = err - self.err
@@ -68,9 +73,11 @@ class OnRoadController:
         
         if self.turning and self.turn_dir == 1:
             if self.turn_stage == 0 and values[3] == 1:
+                print('check 1')
                 self.turn_stage += 1
                 return
             if self.turn_stage == 1 and values[3] == 0:
+                print('check 2')
                 self.turn_stage += 1
                 return
             if self.turn_stage == 2 and values[3] == 1:
@@ -86,9 +93,11 @@ class OnRoadController:
         
         if self.turning and self.turn_dir == 3:
             if self.turn_stage == 0 and values[0] == 1:
+                print('check 1')
                 self.turn_stage += 1
                 return
             if self.turn_stage == 1 and values[0] == 0:
+                print('check 2')
                 self.turn_stage += 1
                 return
             if self.turn_stage == 2 and values[0] == 1:
@@ -117,16 +126,21 @@ class OnRoadController:
         
     def activate(self) -> None:
         self.line_sensors.set_callback(self.on_change)
+        self.turning = False
+        self.turn_dir = 0
+        self.turn_stage = 0
 
-    def lost(self) -> None:
         self.target_lspeed = 90
         self.target_rspeed = 90
+
+    def lost(self) -> None:
+        return
 
     def junction(self) -> None:
         turn = self.navigator.get_turn()
         self.turn_dir = turn
         print('turn: ', turn)
-        if self.navigator.next_node == self.navigator.destination and self.navigator.destination != 1:
+        if self.navigator.next_node == self.navigator.destination and self.navigator.destination > 2:
             print('arriving')
             schedule(self.entrance_turn, 900)
             return
@@ -168,19 +182,20 @@ class OnRoadController:
         
 
     def entrance_turn(self, delay):
+        self.servo.drop()
         sleep_ms(delay)
         self.turn_stage = 0
         if self.turn_dir == 1:
             print('on left')
-            self.wheels.wheel_speed(-50, 50)
+            self.wheels.wheel_speed(-90, 90)
         elif self.turn_dir == 3:
             print('on right')
-            self.wheels.wheel_speed(50, -50)
+            self.wheels.wheel_speed(90, -90)
         else:
             print('straight ahead')
             self.on_complete()
             return
         self.turn_stage = 0
         self.line_sensors.set_callback(self.entrance_turn_handler)
-        return
+        return  
 

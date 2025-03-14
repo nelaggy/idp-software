@@ -7,13 +7,18 @@ class Navigator:
         self.direction = 3
         self.next_node = 1
         self.destination = 1
-        self.cnt = 0
+        self.cnt = 1
         self.path = None
 
     def set_destination(self, destination: int):
-        self.cnt = 0
+        self.cnt = 1
         self.destination = destination
-        self.path = self.graph.paths.get((self.node, self.destination))
+        if (self.node, self.destination) in self.graph.paths:
+            self.path = self.graph.paths.get((self.node, self.destination))
+        if self.path is None:
+            self.path = self.graph.paths.get((self.destination, self.node))
+            if self.path is not None:
+                self.path.reverse()
         if self.path is None:
             raise ValueError(f"Path from {self.node} to {self.destination} not found.")
         self.next_node = self.path[self.cnt]
@@ -32,8 +37,15 @@ class Navigator:
             return -1
         turn_direction = (self.direction - self.graph.edges[self.node][self.next_node][0]) % 4
         self.direction = self.graph.edges[self.node][self.next_node][0]
-        print(self.node, self.next_node)
         
         return turn_direction
+    
+    def reset(self):
+        self.node = 1
+        self.direction = 3
+        self.next_node = 1
+        self.destination = 1
+        self.cnt = 1
+        self.path = None
 
     
