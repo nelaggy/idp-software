@@ -28,7 +28,7 @@ class Servo:
         '''Move to 90°'''
         self.set_angle(90)
 
-    def drop(self,_):
+    def drop(self):
         '''Move to 0°'''
         self.set_angle(38)
     
