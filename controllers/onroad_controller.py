@@ -179,6 +179,7 @@ class OnRoadController:
         
 
     def entrance_turn(self, delay):
+        self.servo.drop()
         sleep_ms(delay)
         self.turn_stage = 0
         if self.turn_dir == 1:
@@ -193,5 +194,5 @@ class OnRoadController:
             return
         self.turn_stage = 0
         self.line_sensors.set_callback(self.entrance_turn_handler)
-        return
+        return  
 

@@ -65,7 +65,7 @@ class MainController:
             self.navigator.set_destination(16)
             self.led.on()
             return
-        # pass dropoff=self.carrying_block
+        print('go offroad')
         self.navigator.get_turn()
         self.offroad_controller.activate(self.carrying_block)
 

@@ -123,7 +123,9 @@ class OffRoadController:
         self.wheels.stop()
         self.turn_180_flag = True
         self.turn_stage = 0
-        self.pickup_cb()
+        self.turn_dir = 0
+        if not self.drop_flag:
+            self.pickup_cb()
         return
     
     def exit_turn(self, turn_dir: int) -> None:
@@ -131,6 +133,7 @@ class OffRoadController:
         self.turn_stage = 0
         self.turn_dir = turn_dir
         self.turn_stop = abs(turn_dir)
+        print('turns', self.turn_stop)
         if self.turn_dir < 0:
             self.wheels.wheel_speed(-50, 50)
         elif self.turn_dir > 0:
@@ -144,26 +147,25 @@ class OffRoadController:
     def exit_turn_handler(self, values: bytearray) -> None:
         sign = 1 if self.turn_dir < 0 else -1
         idx = 0 if self.turn_dir < 0 else 3
-        if self.turn_stage == 0 and values[idx] == 1:
+        print(self.turn_stage)
+        if self.turn_stage % 3 == 0 and values[idx] == 1:
             self.turn_stage += 1
             return
-        if self.turn_stage == 1 and values[idx + sign] == 1:
+        if self.turn_stage % 3 == 1 and values[idx + sign] == 1:
             self.turn_stage += 1
             return
-        if self.turn_stage == 2 and values[idx + 2*sign] == 1:
+        if self.turn_stage % 3 == 2 and values[idx + 2*sign] == 1:
             self.turn_stage += 1
             if self.turn_stage == 3*self.turn_stop:
                 self.wheels.stop()
                 self.on_complete()
                 return
-            self.wheels.stop()
-            self.on_complete()
-            return
         
     
     def pickup_box(self) -> None:
         self.wheels.stop()
-        self.servo.lift()
+        if not self.drop_flag:
+            self.servo.lift()
         self.target_lspeed = -90
         self.target_rspeed = -90
         self.wheels.wheel_speed(self.target_lspeed, self.target_rspeed)
