@@ -67,7 +67,7 @@ class MainController:
             return
         # pass dropoff=self.carrying_block
         self.navigator.get_turn()
-        self.offroad_controller.activate()
+        self.offroad_controller.activate(self.carrying_block)
 
     def get_colour(self):
         # get colour and hence next destination
@@ -81,7 +81,10 @@ class MainController:
         elif turn == 3:
             self.offroad_controller.exit_turn(-1)
         elif turn == 0:
-            self.offroad_controller.exit_turn(2)
+            if self.navigator.node == 2:
+                self.offroad_controller.exit_turn(2)
+            else:
+                self.offroad_controller.exit_turn(-2)
         
         
 

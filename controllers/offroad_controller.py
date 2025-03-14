@@ -33,8 +33,7 @@ class OffRoadController:
         self.turn_180_flag = False
         self.reverse_flag = False
         self.pickup_flag = False
-        self.drop_box_flag = False
-        self.activate_flag = True
+        self.drop_flag = False
         
     def calc_pid(self, values):
         err = 3*values[0] + values[1] - values[2] - 3*values[3]
@@ -106,14 +105,14 @@ class OffRoadController:
     #         return
             
     
-    def activate(self) -> None:
+    def activate(self, drop_flag) -> None:
         self.line_sensors.set_callback(self.on_change)
         self.target_lspeed = 50
         self.target_rspeed = 50
         self.turn_180_flag = False
         self.reverse_flag = False
         self.pickup_flag = False
-        self.drop_box_flag = False
+        self.drop_flag = drop_flag
         self.servo.drop()
 
     def lost(self) -> None:
@@ -132,20 +131,19 @@ class OffRoadController:
         self.turn_stage = 0
         self.turn_dir = turn_dir
         self.turn_stop = abs(turn_dir)
-        self.wheels.wheel_speed(-50, 50)
-        # if self.turn_dir < 0:
-        #     self.wheels.wheel_speed(-50, 50)
-        # elif self.turn_dir > 0:
-        #     self.wheels.wheel_speed(50, -50)
-        # else:
-        #     self.on_complete()
-        #     return
+        if self.turn_dir < 0:
+            self.wheels.wheel_speed(-50, 50)
+        elif self.turn_dir > 0:
+            self.wheels.wheel_speed(50, -50)
+        else:
+            self.on_complete()
+            return
         self.line_sensors.set_callback(self.exit_turn_handler)
         return
     
     def exit_turn_handler(self, values: bytearray) -> None:
-        sign = 1
-        idx = 0
+        sign = 1 if self.turn_dir < 0 else -1
+        idx = 0 if self.turn_dir < 0 else 3
         if self.turn_stage == 0 and values[idx] == 1:
             self.turn_stage += 1
             return
@@ -153,11 +151,11 @@ class OffRoadController:
             self.turn_stage += 1
             return
         if self.turn_stage == 2 and values[idx + 2*sign] == 1:
-            # self.turn_stage += 1
-            # if self.turn_stage == 3*self.turn_stop:
-            #     self.wheels.stop()
-            #     self.on_complete()
-            #     return
+            self.turn_stage += 1
+            if self.turn_stage == 3*self.turn_stop:
+                self.wheels.stop()
+                self.on_complete()
+                return
             self.wheels.stop()
             self.on_complete()
             return
