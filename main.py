@@ -41,7 +41,7 @@ class MainController:
         self.navigator.reset()
         self.navigator.set_destination(1)
 
-        self.start_box_flag = True
+        self.start_flag = True
         self.carrying_block = False
         self.running = True
         
@@ -54,13 +54,14 @@ class MainController:
 
     def go_onroad(self):
         # get colour and hence next destination
+        print('go onroad')
         self.carrying_block = not self.carrying_block
         self.cnt += 1
         self.onroad_controller.activate()
         
     def go_offroad(self):
-        if self.start_box_flag:
-            self.start_box_flag = False
+        if self.start_flag:
+            self.start_flag = False
             self.navigator.set_destination(16)
             self.led.on()
             return
@@ -68,10 +69,12 @@ class MainController:
         self.navigator.get_turn()
         self.offroad_controller.activate()
 
-    def get_colour(self, _):
+    def get_colour(self):
         # get colour and hence next destination
+        sleep_ms(5000)
         self.navigator.change_direction(2)
         self.navigator.set_destination(self.destinations[self.cnt])
+        print(self.navigator.node, self.navigator.destination, self.navigator.path, self.navigator.direction)
         turn = self.navigator.get_turn()
         if turn == 1:
             self.offroad_controller.exit_turn(1)
