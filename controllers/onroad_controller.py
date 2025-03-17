@@ -101,6 +101,9 @@ class OnRoadController:
             #     self.on_complete()
             return
         
+        if self.turning:
+            print(lspeed, rspeed)
+        
     def activate(self) -> None:
         self.line_sensors.set_callback(self.on_change)
         self.turning = False
