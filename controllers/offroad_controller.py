@@ -12,7 +12,7 @@ class OffRoadController:
         self.pickup_cb = pickup_cb
 
         self.kp = 15
-        self.ki = 0.0015
+        self.ki = 0.01
         self.kd = 0
 
         self.i = 0
@@ -58,7 +58,6 @@ class OffRoadController:
                 return
             
             if values == b'\1\1\1\1':
-                print('detected all white, pickup activated')
                 self.pickup_box()
         
         else: # reverse
@@ -119,10 +118,11 @@ class OffRoadController:
         self.wheels.stop()
 
     def stop_reversing(self, _):
+        print('stop reversing')
+        self.timer.deinit()
         self.wheels.stop()
         self.turn_180_flag = True
         self.turn_stage = 0
-        self.turn_stop = abs(self.turn_dir)
         if self.turn_dir < 0:
             self.wheels.wheel_speed(-50, 50)
         elif self.turn_dir > 0:
@@ -132,22 +132,12 @@ class OffRoadController:
             return
         self.line_sensors.set_callback(self.exit_turn_handler)
         return
-        return
     
     def exit_turn(self, turn_dir: int) -> None:
-        print('exit turn')
+        print('exit turn', turn_dir)
         self.turn_stage = 0
         self.turn_dir = turn_dir
-        # self.turn_stop = abs(turn_dir)
-        # if self.turn_dir < 0:
-        #     self.wheels.wheel_speed(-50, 50)
-        # elif self.turn_dir > 0:
-        #     self.wheels.wheel_speed(50, -50)
-        # else:
-        #     self.on_complete()
-        #     return
-        # self.line_sensors.set_callback(self.exit_turn_handler)
-        # return
+        self.turn_stop = abs(self.turn_dir)
     
     def exit_turn_handler(self, values: bytearray) -> None:
         sign = 1 if self.turn_dir < 0 else -1
@@ -172,7 +162,7 @@ class OffRoadController:
             self.servo.lift()
         self.target_lspeed = -90
         self.target_rspeed = -90
-        # self.wheels.wheel_speed(self.target_lspeed, self.target_rspeed)
+        self.wheels.wheel_speed(self.target_lspeed, self.target_rspeed)
         self.stage = 2
         self.reverse_flag = True
         self.timer = Timer(mode=Timer.ONE_SHOT, period=1000, callback=self.stop_reversing)

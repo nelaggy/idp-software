@@ -12,8 +12,8 @@ class OnRoadController:
         self.navigator = navigator
         self.on_complete = on_complete
 
-        self.kp = 15
-        self.ki = 0.01
+        self.kp = 20
+        self.ki = 0.1
         self.kd = 0
 
         self.i = 0
@@ -100,9 +100,6 @@ class OnRoadController:
             # if self.navigator.next_node == self.navigator.destination and self.navigator.node != 1:
             #     self.on_complete()
             return
-        
-        if self.turning:
-            print(lspeed, rspeed)
         
     def activate(self) -> None:
         self.line_sensors.set_callback(self.on_change)

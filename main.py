@@ -1,4 +1,5 @@
 ## Main loop
+from hardware.colour_sensor import ColourSensor
 from hardware.motor import Motors
 from hardware.line_sensor import LineSensors
 from hardware.servo import Servo
@@ -17,11 +18,12 @@ class MainController:
         self.servo = Servo()
         self.led = Pin(26, Pin.OUT, value=0)
         self.button = Pin(14, Pin.IN)
+        self.colour_sensor = ColourSensor()
         self.running = False
         
         self.button.irq(trigger=Pin.IRQ_RISING, handler=lambda _: self.toggle())
         self.servo.set_angle(90)
-        self.destinations = [0, 17, 2, 19, 0, 18, 2]
+        self.destinations = [17, 18, 19]
         self.onroad_controller = OnRoadController(self.line_sensors, self.wheels, self.servo, self.navigator, self.go_offroad)
         self.offroad_controller = OffRoadController(self.line_sensors, self.wheels, self.servo, self.go_onroad, self.get_colour)
 
@@ -50,10 +52,7 @@ class MainController:
         self.button.irq(trigger=Pin.IRQ_RISING, handler=lambda _: self.toggle())
 
     def go_onroad(self):
-        # get colour and hence next destination
         print('go onroad')
-        self.carrying_block = not self.carrying_block
-        self.cnt += 1
         self.onroad_controller.activate()
         
     def go_offroad(self):
@@ -67,9 +66,19 @@ class MainController:
         self.offroad_controller.activate(self.carrying_block)
 
     def get_colour(self, _):
-        # get colour and hence next destination
         self.navigator.change_direction(2)
-        self.navigator.set_destination(self.destinations[self.cnt])
+        self.carrying_block = not self.carrying_block
+        if not self.carrying_block:
+            self.navigator.set_destination(self.destinations[self.cnt])
+            self.cnt += 1
+        else:
+            is_bg = self.colour_sensor.detect()
+            if is_bg:
+                print('green or blue')
+                self.navigator.set_destination(2)
+            else:
+                print('red or yellow')
+                self.navigator.set_destination(0)
         print(self.navigator.node, self.navigator.destination, self.navigator.path, self.navigator.direction)
         turn = self.navigator.get_turn()
         if turn == 1:
