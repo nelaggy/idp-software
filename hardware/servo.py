@@ -1,5 +1,4 @@
 from machine import Pin, PWM
-from time import sleep
 
 # Connect servo to J35
 # Servo rotates to an angle determined by width of duty cycle
@@ -30,7 +29,7 @@ class Servo:
 
     def drop(self):
         '''Move to 0°'''
-        self.set_angle(38)
+        self.set_angle(35)
     
     def deinit(self):
         '''Turn off PWM and reset angle tracking'''

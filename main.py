@@ -4,9 +4,7 @@ from hardware.line_sensor import LineSensors
 from hardware.servo import Servo
 from navigation.navigator import Navigator
 from controllers.onroad_controller import OnRoadController
-from machine import Pin
-from time import sleep_ms
-from micropython import schedule
+from machine import Pin, Timer
 from controllers.offroad_controller import OffRoadController
 
 
@@ -30,7 +28,7 @@ class MainController:
     def toggle(self):
         print('toggle')
         self.button.irq(trigger=Pin.IRQ_RISING, handler=None)
-        schedule(self.debounce, 500)
+        self.timer = Timer(mode=Timer.ONE_SHOT, period=200, callback=self.debounce)
         if self.running:
             self.line_sensors.set_callback(None)
             self.wheels.stop()
@@ -48,8 +46,7 @@ class MainController:
         self.cnt = 0
         self.onroad_controller.activate()
 
-    def debounce(self, delay):
-        sleep_ms(delay)
+    def debounce(self, _):
         self.button.irq(trigger=Pin.IRQ_RISING, handler=lambda _: self.toggle())
 
     def go_onroad(self):
@@ -69,9 +66,8 @@ class MainController:
         self.navigator.get_turn()
         self.offroad_controller.activate(self.carrying_block)
 
-    def get_colour(self):
+    def get_colour(self, _):
         # get colour and hence next destination
-        sleep_ms(5000)
         self.navigator.change_direction(2)
         self.navigator.set_destination(self.destinations[self.cnt])
         print(self.navigator.node, self.navigator.destination, self.navigator.path, self.navigator.direction)
