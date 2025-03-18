@@ -14,14 +14,13 @@ class ColourSensor:
         cct_sum = 0
         B_sum = 0
         n = 0
-        start_time = time.time()
 
-        while time.time() - start_time < 0.5: # Run for 3 seconds
+        while n < 10:
             cct_sum += self.tcs.read(raw=False)[0] # Get cct value
             B_sum += self.tcs.read(raw=True)[2] # Get blue value
             n += 1
-            time.sleep(0.05)
+            time.sleep_ms(50)
         
         cct_average = cct_sum/n
         B_average = B_sum/n
-        return cct_average > 20000 or B_average > 20
+        return cct_average > 15000 or B_average > 16

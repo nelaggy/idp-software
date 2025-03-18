@@ -21,7 +21,7 @@ class Servo:
 
     def lift(self):
         '''Move to 45°'''
-        self.set_angle(60)
+        self.set_angle(45)
     
     def lift90(self):
         '''Move to 90°'''
@@ -29,7 +29,7 @@ class Servo:
 
     def drop(self):
         '''Move to 0°'''
-        self.set_angle(35)
+        self.set_angle(25)
     
     def deinit(self):
         '''Turn off PWM and reset angle tracking'''

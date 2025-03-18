@@ -11,133 +11,112 @@ class OffRoadController:
         self.on_complete = on_complete
         self.pickup_cb = pickup_cb
 
-        self.kp = 15
-        self.ki = 0.01
-        self.kd = 0
+        self.timer = Timer(-1)
+
+        self.kp = 25
+        self.kp_reverse = 25
+        self.ki = 1
+        self.ki_reverse = 1
+        self.ki_mag = 10
+        self.kd = 2
+        self.kd_reverse = 2
+        self.kd_mag = 100
 
         self.i = 0
         self.d = 0
         self.err = 0
 
-        self.target_lspeed = 50
-        self.target_rspeed = 50
+        self.target_lspeed = -50
+        self.target_rspeed = -50
 
         # Servo
         self.servo = servo
+
+        self.drop_flag = False
 
         self.stage = 0 # 0 approaching, 1 picking up, 2 reversing, 3 exit turn
         self.turn_stage = 0
         self.turn_stop = 0
         self.turn_dir = 0
 
-        self.turn_180_flag = False
-        self.reverse_flag = False
-        self.pickup_flag = False
-        self.drop_flag = False
+    def on_change(self, values: bytearray) -> None:
+        if self.stage == 2: # picking up
+            return
         
-    def calc_pid(self, values):
+        if self.stage == 1 and values == b'\x00\x00\x00\x00':
+            self.lost()
+            return
+        
+        if self.stage == 1 and values == b'\1\1\1\1':
+            self.wheels.stop()
+            self.pickup_box()
+            return
+        
         err = 3*values[0] + values[1] - values[2] - 3*values[3]
         self.i += err
         self.d = err - self.err
         self.err = err
-        pid = self.kp * err + self.ki * self.i + self.kd * self.d
-        return pid
-    
-    def on_change(self, values: bytearray) -> None:
-        if not self.reverse_flag:
-            
-            pid = self.calc_pid(values)
-
-            lspeed = self.target_lspeed - pid
-            rspeed = self.target_rspeed + pid
-
-            self.wheels.wheel_speed(lspeed, rspeed)
-
-            if values == b'\x00\x00\x00\x00':
-                self.lost()
-                return
-            
-            if values == b'\1\1\1\1':
-                self.pickup_box()
-        
-        else: # reverse
-            pid = self.calc_pid(values)
-
-            # Motor speed adjustments for backward movement
-            lspeed = self.target_lspeed - pid
-            rspeed = self.target_rspeed + pid
-
-            self.wheels.wheel_speed(lspeed, rspeed)
-
-    # def on_change(self, values: bytearray) -> None:
-    #     print(self.stage)
-    #     if self.stage == 1:
-    #         print('picking up')
-    #         self.wheels.stop()
-    #         return
-        
-    #     err = 3*values[0] + values[1] - values[2] - 3*values[3]
-    #     self.i += err
-    #     self.d = err - self.err
-    #     self.err = err
-    #     pid = self.kp * err + self.ki * self.i + self.kd * self.d
-    #     lspeed = self.target_lspeed - pid
-    #     rspeed = self.target_rspeed + pid
-    #     self.wheels.wheel_speed(lspeed, rspeed)
-
-    #     if self.stage == 0 and values == b'\x00\x00\x00\x00':
-    #         print('lost')
-    #         self.lost()
-    #         return
-        
-    #     if self.stage == 2:
-    #         print('reversing')
-    #         self.stage = 3
-    #         schedule(self.stop_reversing, 1000)
-    #         return
-        
-    #     if self.stage == 0 and values == b'\1\1\1\1':
-    #         self.stage = 1
-    #         print('detected all white, pickup activated')
-    #         self.wheels.stop()
-    #         schedule(self.pickup_box, None)
-    #         return
+        if self.stage == 1:
+            pid = self.kp * err + (self.ki * self.i)//self.ki_mag + (self.kd * self.d) // self.kd_mag
+        else:
+            pid = self.kp_reverse * err + (self.ki_reverse * self.i)//self.ki_mag + (self.kd_reverse * self.d) // self.kd_mag
+        lspeed = self.target_lspeed - pid
+        rspeed = self.target_rspeed + pid
+        self.wheels.wheel_speed(lspeed, rspeed)
             
     
-    def activate(self, drop_flag) -> None:
+    def activate(self, drop_flag, reverse_flag) -> None:
         self.line_sensors.set_callback(self.on_change)
+        self.drop_flag = drop_flag
+        if reverse_flag:
+            self.target_lspeed = -70
+            self.target_rspeed = -70
+            
+            self.timer.init(mode=Timer.ONE_SHOT, period=500, callback=lambda _: self.move_forward())
+            return
         self.target_lspeed = 50
         self.target_rspeed = 50
-        self.turn_180_flag = False
-        self.reverse_flag = False
-        self.pickup_flag = False
-        self.drop_flag = drop_flag
+        self.stage = 1
         self.servo.drop()
 
     def lost(self) -> None:
         self.wheels.stop()
 
-    def stop_reversing(self, _):
-        print('stop reversing')
+    def move_forward(self):
+        self.servo.drop()
+        self.stage = 1
+        self.target_lspeed = 50
+        self.target_rspeed = 50
+
+    def stop_reversing(self):
+        # schedule(print,'stop reversing, exit '+ str(self.turn_dir))
+        if self.drop_flag:
+            self.servo.set_angle(90)
         self.timer.deinit()
         self.wheels.stop()
-        self.turn_180_flag = True
         self.turn_stage = 0
+        self.stage = 4
         if self.turn_dir < 0:
-            self.wheels.wheel_speed(-50, 50)
+            self.wheels.wheel_speed(-90, 90)
         elif self.turn_dir > 0:
-            self.wheels.wheel_speed(50, -50)
+            self.wheels.wheel_speed(90, -90)
         else:
             self.on_complete()
             return
         self.line_sensors.set_callback(self.exit_turn_handler)
         return
     
-    def exit_turn(self, turn_dir: int) -> None:
-        print('exit turn', turn_dir)
+    
+    def exit_turn(self, turn_dir: int, reverse_delay: int) -> None:
+        # print('reversing')
         self.turn_stage = 0
         self.turn_dir = turn_dir
         self.turn_stop = abs(self.turn_dir)
+        self.target_lspeed = -70
+        self.target_rspeed = -70
+        # self.wheels.wheel_speed(self.target_lspeed, self.target_rspeed)
+        self.stage = 3
+        self.timer.init(mode=Timer.ONE_SHOT, period=reverse_delay, callback=lambda _: self.stop_reversing())
     
     def exit_turn_handler(self, values: bytearray) -> None:
         sign = 1 if self.turn_dir < 0 else -1
@@ -157,14 +136,9 @@ class OffRoadController:
         
     
     def pickup_box(self) -> None:
+        self.stage = 2
         self.wheels.stop()
         if not self.drop_flag:
             self.servo.lift()
-        self.target_lspeed = -90
-        self.target_rspeed = -90
-        self.wheels.wheel_speed(self.target_lspeed, self.target_rspeed)
-        self.stage = 2
-        self.reverse_flag = True
-        self.timer = Timer(mode=Timer.ONE_SHOT, period=1000, callback=self.stop_reversing)
-        schedule(self.pickup_cb, None)
+        schedule(lambda _: self.pickup_cb(), None)
     

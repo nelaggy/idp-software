@@ -13,11 +13,13 @@ class Navigator:
     def set_destination(self, destination: int):
         self.cnt = 1
         self.destination = destination
-        if (self.node, self.destination) in self.graph.paths:
-            self.path = self.graph.paths.get((self.node, self.destination))
+        paths = self.graph.paths.get(self.node)
+        self.path = paths.get(self.destination) if paths is not None else None
         if self.path is None:
-            self.path = self.graph.paths.get((self.destination, self.node))
+            paths = self.graph.paths.get(self.destination)
+            self.path = paths.get(self.node) if paths is not None else None
             if self.path is not None:
+                print(self.path)
                 self.path.reverse()
         if self.path is None:
             raise ValueError(f"Path from {self.node} to {self.destination} not found.")
