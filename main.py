@@ -29,7 +29,7 @@ class MainController:
         
         self.button.irq(trigger=Pin.IRQ_RISING, handler=lambda _: self.toggle())
         self.servo.set_angle(90)
-        self.destinations = [17, 18, 19, 1]
+        self.destinations = [17, 18, 19, 16, 17, 18, 19, 1]
         self.onroad_controller = OnRoadController(self.line_sensors, self.wheels, self.servo, self.navigator, self.go_offroad)
         self.offroad_controller = OffRoadController(self.line_sensors, self.wheels, self.servo, self.go_onroad, self.get_colour)
 
@@ -79,9 +79,12 @@ class MainController:
             return
         self.navigator.get_turn()
         reverse_flag = False
+        delay = 500
         if self.navigator.node == 17 or self.navigator.node == 18 or self.navigator.node == 19:
             reverse_flag = True
-        self.offroad_controller.activate(self.carrying_block, reverse_flag)
+        if self.navigator.node == 17 or self.navigator.node == 19:
+            delay = 600
+        self.offroad_controller.activate(self.carrying_block, reverse_flag, delay=delay)
 
     def get_colour(self):
         self.navigator.change_direction(2)
@@ -102,7 +105,7 @@ class MainController:
         # print(self.navigator.node, self.navigator.destination, self.navigator.path, self.navigator.direction)
         reverse_delay = 1200
         if self.navigator.node == 9:
-            reverse_delay = 600
+            reverse_delay = 400
         elif self.navigator.node == 3 or self.navigator.node == 6:
             reverse_delay = 1400
         turn = self.navigator.get_turn()

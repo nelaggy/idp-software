@@ -149,9 +149,9 @@ class OnRoadController:
         # self.servo.drop()
         self.turn_stage = 0
         if self.turn_dir == 1:
-            self.wheels.wheel_speed(-90, 90)
+            self.wheels.wheel_speed(-100, 100)
         elif self.turn_dir == 3:
-            self.wheels.wheel_speed(90, -90)
+            self.wheels.wheel_speed(100, -100)
         else:
             self.on_complete()
             return

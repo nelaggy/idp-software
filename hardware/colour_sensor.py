@@ -19,8 +19,8 @@ class ColourSensor:
             cct_sum += self.tcs.read(raw=False)[0] # Get cct value
             B_sum += self.tcs.read(raw=True)[2] # Get blue value
             n += 1
-            time.sleep_ms(50)
+            time.sleep_ms(40)
         
         cct_average = cct_sum/n
         B_average = B_sum/n
-        return cct_average > 15000 or B_average > 16
+        return cct_average > 18000 or B_average > 18

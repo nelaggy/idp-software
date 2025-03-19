@@ -13,7 +13,7 @@ class OffRoadController:
 
         self.timer = Timer(-1)
 
-        self.kp = 25
+        self.kp = 30
         self.kp_reverse = 25
         self.ki = 1
         self.ki_reverse = 1
@@ -26,8 +26,8 @@ class OffRoadController:
         self.d = 0
         self.err = 0
 
-        self.target_lspeed = -50
-        self.target_rspeed = -50
+        self.target_lspeed = -90
+        self.target_rspeed = -90
 
         # Servo
         self.servo = servo
@@ -65,17 +65,17 @@ class OffRoadController:
         self.wheels.wheel_speed(lspeed, rspeed)
             
     
-    def activate(self, drop_flag, reverse_flag) -> None:
+    def activate(self, drop_flag, reverse_flag, delay=500) -> None:
         self.line_sensors.set_callback(self.on_change)
         self.drop_flag = drop_flag
         if reverse_flag:
-            self.target_lspeed = -70
-            self.target_rspeed = -70
+            self.target_lspeed = -90
+            self.target_rspeed = -90
             
-            self.timer.init(mode=Timer.ONE_SHOT, period=500, callback=lambda _: self.move_forward())
+            self.timer.init(mode=Timer.ONE_SHOT, period=delay, callback=lambda _: self.move_forward())
             return
-        self.target_lspeed = 50
-        self.target_rspeed = 50
+        self.target_lspeed = 70
+        self.target_rspeed = 70
         self.stage = 1
         self.servo.drop()
 
@@ -85,8 +85,8 @@ class OffRoadController:
     def move_forward(self):
         self.servo.drop()
         self.stage = 1
-        self.target_lspeed = 50
-        self.target_rspeed = 50
+        self.target_lspeed = 70
+        self.target_rspeed = 70
 
     def stop_reversing(self):
         # schedule(print,'stop reversing, exit '+ str(self.turn_dir))
@@ -97,9 +97,9 @@ class OffRoadController:
         self.turn_stage = 0
         self.stage = 4
         if self.turn_dir < 0:
-            self.wheels.wheel_speed(-90, 90)
+            self.wheels.wheel_speed(-100, 100)
         elif self.turn_dir > 0:
-            self.wheels.wheel_speed(90, -90)
+            self.wheels.wheel_speed(100, -100)
         else:
             self.on_complete()
             return
@@ -112,8 +112,8 @@ class OffRoadController:
         self.turn_stage = 0
         self.turn_dir = turn_dir
         self.turn_stop = abs(self.turn_dir)
-        self.target_lspeed = -70
-        self.target_rspeed = -70
+        self.target_lspeed = -90
+        self.target_rspeed = -90
         # self.wheels.wheel_speed(self.target_lspeed, self.target_rspeed)
         self.stage = 3
         self.timer.init(mode=Timer.ONE_SHOT, period=reverse_delay, callback=lambda _: self.stop_reversing())
