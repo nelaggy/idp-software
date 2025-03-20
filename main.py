@@ -1,4 +1,3 @@
-## Main loop
 from hardware.colour_sensor import ColourSensor
 from hardware.motor import Motors
 from hardware.line_sensor import LineSensors
@@ -91,7 +90,6 @@ class MainController:
         self.carrying_block = not self.carrying_block
         if not self.carrying_block:
             self.navigator.set_destination(self.destinations[self.cnt])
-            # print('carrying block: ', self.carrying_block, 'destination: ', self.destinations[self.cnt])
             self.cnt += 1
             if self.cnt == len(self.destinations):
                 self.end_flag = True
@@ -102,10 +100,9 @@ class MainController:
                 self.navigator.set_destination(2)
             else:
                 self.navigator.set_destination(0)
-        # print(self.navigator.node, self.navigator.destination, self.navigator.path, self.navigator.direction)
         reverse_delay = 1200
-        if self.navigator.node == 9:
-            reverse_delay = 400
+        if self.navigator.node == 9 or self.navigator.node == 17 or self.navigator.node == 19 or self.navigator.node == 14:
+            reverse_delay = 700
         elif self.navigator.node == 3 or self.navigator.node == 6:
             reverse_delay = 1400
         turn = self.navigator.get_turn()

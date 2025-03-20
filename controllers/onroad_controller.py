@@ -3,7 +3,6 @@ from hardware.motor import Motors
 from hardware.servo import Servo
 from navigation.navigator import Navigator
 from machine import Timer
-from micropython import schedule
 
 class OnRoadController:
     def __init__(self, line_sensors: LineSensors, wheels: Motors, servo: Servo, navigator: Navigator, on_complete) -> None:
@@ -52,15 +51,12 @@ class OnRoadController:
         
         if self.turning and self.turn_dir == 1:
             if self.turn_stage == 0 and values[3] == 1:
-                # schedule(print, 'left stage 1')
                 self.turn_stage += 1
                 return
             if self.turn_stage == 1 and values[3] == 0:
-                # schedule(print, 'left stage 2')
                 self.turn_stage += 1
                 return
             if self.turn_stage == 2 and values[3] == 1:
-                # schedule(print, 'left stage 3')
                 self.turning = False
                 self.turn_stage = 0
                 self.turn_dir = 0
@@ -70,15 +66,12 @@ class OnRoadController:
         
         if self.turning and self.turn_dir == 3:
             if self.turn_stage == 0 and values[0] == 1:
-                # schedule(print, 'right stage 1')
                 self.turn_stage += 1
                 return
             if self.turn_stage == 1 and values[0] == 0:
-                # schedule(print, 'right stage 2')
                 self.turn_stage += 1
                 return
             if self.turn_stage == 2 and values[0] == 1:
-                # schedule(print, 'right stage 3')
                 self.turning = False
                 self.turn_stage = 0
                 self.turn_dir = 0
@@ -108,13 +101,10 @@ class OnRoadController:
     def junction(self) -> None:
         turn = self.navigator.get_turn()
         self.turn_dir = turn
-        # schedule(print,'turn: '+ str(turn) + ' node: '+ str(self.navigator.node))
         if self.navigator.next_node == self.navigator.destination and self.navigator.destination > 2:
             self.timer.init(mode=Timer.ONE_SHOT, period=770, callback=lambda _: self.entrance_turn())
             return
         self.turning = True
-        # if self.navigator.node == 12 or self.navigator.node == 15:
-        #     self.turn_stage = 1
         if turn == 0:
             self.target_lspeed = 90
             self.target_rspeed = 90
@@ -146,7 +136,6 @@ class OnRoadController:
 
     def entrance_turn(self):
         self.timer.deinit()
-        # self.servo.drop()
         self.turn_stage = 0
         if self.turn_dir == 1:
             self.wheels.wheel_speed(-100, 100)

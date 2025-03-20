@@ -19,7 +19,6 @@ class Navigator:
             paths = self.graph.paths.get(self.destination)
             self.path = paths.get(self.node) if paths is not None else None
             if self.path is not None:
-                print(self.path)
                 self.path.reverse()
         if self.path is None:
             raise ValueError(f"Path from {self.node} to {self.destination} not found.")

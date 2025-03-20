@@ -1,7 +1,6 @@
 import time
 import ustruct
 
-# const = lambda x:x
 
 _COMMAND_BIT = const(0x80)
 
@@ -121,9 +120,8 @@ class TCS34725:
         y = -0.32466 * r + 1.57837 * g + -0.73191 * b
         z = -0.68202 * r + 0.77073 * g +  0.56332 * b
         d = x + y + z
-        # Check for division by zero
         if d == 0:
-            d = 1e-6  # Use a very small value to prevent division by zero
+            d = 1e-6 
         n = (x / d - 0.3320) / (0.1858 - y / d)
         cct = 449.0 * n**3 + 3525.0 * n**2 + 6823.3 * n + 5520.33
         return cct, y

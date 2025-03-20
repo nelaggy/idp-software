@@ -29,18 +29,17 @@ class OffRoadController:
         self.target_lspeed = -90
         self.target_rspeed = -90
 
-        # Servo
         self.servo = servo
 
         self.drop_flag = False
 
-        self.stage = 0 # 0 approaching, 1 picking up, 2 reversing, 3 exit turn
+        self.stage = 0
         self.turn_stage = 0
         self.turn_stop = 0
         self.turn_dir = 0
 
     def on_change(self, values: bytearray) -> None:
-        if self.stage == 2: # picking up
+        if self.stage == 2:
             return
         
         if self.stage == 1 and values == b'\x00\x00\x00\x00':
@@ -89,7 +88,6 @@ class OffRoadController:
         self.target_rspeed = 70
 
     def stop_reversing(self):
-        # schedule(print,'stop reversing, exit '+ str(self.turn_dir))
         if self.drop_flag:
             self.servo.set_angle(90)
         self.timer.deinit()
@@ -108,13 +106,11 @@ class OffRoadController:
     
     
     def exit_turn(self, turn_dir: int, reverse_delay: int) -> None:
-        # print('reversing')
         self.turn_stage = 0
         self.turn_dir = turn_dir
         self.turn_stop = abs(self.turn_dir)
         self.target_lspeed = -90
         self.target_rspeed = -90
-        # self.wheels.wheel_speed(self.target_lspeed, self.target_rspeed)
         self.stage = 3
         self.timer.init(mode=Timer.ONE_SHOT, period=reverse_delay, callback=lambda _: self.stop_reversing())
     

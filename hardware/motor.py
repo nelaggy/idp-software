@@ -1,11 +1,3 @@
-
-# left speed, right speed 0-100
-# left direction, right direction True- forwards
-
-# check if changing frequency changes max speed
-# check colour sensor
-# check if pico still works even if disconnected with computer
-
 from machine import Pin, PWM
 
 class Motors:
@@ -28,21 +20,17 @@ class Motors:
         self.r_dir = False
 
     def wheel_speed(self,l_speed=None, r_speed=None):
-        '''
-        Set speed of both motors (0,100)
-        Directions are handled by +- sign of speed
-        '''
         if l_speed is not None:
-            self.l_speed = min(100,abs(l_speed)) # clamp speed between -100, 100
+            self.l_speed = min(100,abs(l_speed))
             self.l_dir = 1 if l_speed >= 0 else 0
             self.l_motor_dir.value(self.l_dir)
-            self.l_motor_spd.duty_u16(int(65535*self.l_speed/100)) # speed
+            self.l_motor_spd.duty_u16(int(65535*self.l_speed/100)) 
         
         if r_speed is not None:
-            self.r_speed = min(100,abs(r_speed)) # clamp speed between -100, 100
+            self.r_speed = min(100,abs(r_speed))
             self.r_dir = 1 if r_speed >= 0 else 0
             self.r_motor_dir.value(self.r_dir)
-            self.r_motor_spd.duty_u16(int(65535*self.r_speed/100)) # speed
+            self.r_motor_spd.duty_u16(int(65535*self.r_speed/100)) 
         
  
     def wheel_direction(self,l_wheel_dir=None, r_wheel_dir=None):

@@ -10,14 +10,14 @@ class ColourSensor:
         self.i2c_bus = I2C(0, sda=Pin(sda_pin), scl=Pin(scl_pin))
         self.tcs = TCS34725(self.i2c_bus)
     
-    def detect(self): # True if green or blue, false if red or yellow
+    def detect(self):
         cct_sum = 0
         B_sum = 0
         n = 0
 
         while n < 10:
-            cct_sum += self.tcs.read(raw=False)[0] # Get cct value
-            B_sum += self.tcs.read(raw=True)[2] # Get blue value
+            cct_sum += self.tcs.read(raw=False)[0]
+            B_sum += self.tcs.read(raw=True)[2]
             n += 1
             time.sleep_ms(40)
         
