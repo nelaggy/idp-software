@@ -12,19 +12,16 @@ class LineSensors:
         self.turning_flag = False
         self.timer = Timer(mode=Timer.PERIODIC, period=dt, callback=self.on_change)
 
+        self.read = self.read_fn
+
         self.cb = cb
 
         self.ll_sensor = Pin(LL_PIN, Pin.IN, Pin.PULL_DOWN)
         self.l_sensor = Pin(L_PIN, Pin.IN, Pin.PULL_UP)
         self.r_sensor = Pin(R_PIN, Pin.IN, Pin.PULL_UP)
         self.rr_sensor = Pin(RR_PIN, Pin.IN, Pin.PULL_DOWN)
-
-        # self.ll_sensor.irq(trigger=Pin.IRQ_RISING, handler=self.report)
-        # self.l_sensor.irq(trigger=Pin.IRQ_RISING, handler=self.report)
-        # self.r_sensor.irq(trigger=Pin.IRQ_RISING, handler=self.report)
-        # self.rr_sensor.irq(trigger=Pin.IRQ_RISING, handler=self.report)
     
-    def read(self):
+    def read_fn(self):
         self.buf[0] = self.ll_sensor.value()
         self.buf[1] = self.l_sensor.value()
         self.buf[2] = self.r_sensor.value()
@@ -37,17 +34,6 @@ class LineSensors:
         self.cb(self.read())
         return
 
-    def set_callback(self, cb, dt=50):
+    def set_callback(self, cb, dt=10):
         self.cb = cb
-        self.timer = Timer(mode=Timer.PERIODIC, period=dt, callback=self.on_change)
-
-    def deactivate_central_trackers(self):
-        self.l_sensor.irq(handler=None)
-        self.r_sensor.irq(handler=None)
-
-    def activate_central_trackers(self):
-        self.l_sensor.irq(trigger=Pin.IRQ_FALLING|Pin.IRQ_RISING, handler=self.on_change)
-        self.r_sensor.irq(trigger=Pin.IRQ_FALLING|Pin.IRQ_RISING, handler=self.on_change)
-        
-    def report(self, value):
-        print(value, self.read())
+        self.timer.init(mode=Timer.PERIODIC, period=dt, callback=self.on_change)

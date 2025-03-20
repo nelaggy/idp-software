@@ -12,13 +12,15 @@ class ColourSensor:
     
     def detect(self):
         cct_sum = 0
+        B_sum = 0
         n = 0
-        start_time = time.time()
 
-        while time.time() - start_time < 3: # Run for 3 seconds
-            cct_sum += self.tcs.read(raw=False)[0] # Get cct value
+        while n < 10:
+            cct_sum += self.tcs.read(raw=False)[0]
+            B_sum += self.tcs.read(raw=True)[2]
             n += 1
-            time.sleep(0.1)
+            time.sleep_ms(40)
         
         cct_average = cct_sum/n
-        return cct_average < 8000
+        B_average = B_sum/n
+        return cct_average > 18000 or B_average > 18

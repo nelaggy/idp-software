@@ -50,7 +50,7 @@ class TCS34725:
             return self.i2c.readfrom_mem(self.address, register, 1)[0]
         data = ustruct.pack('<B', value)
         self.i2c.writeto_mem(self.address, register, data)
-        return value
+        # return value
 
     def _register16(self, register, value=None):
         register |= _COMMAND_BIT
@@ -59,7 +59,7 @@ class TCS34725:
             return ustruct.unpack('<H', data)[0]
         data = ustruct.pack('<H', value)
         self.i2c.writeto_mem(self.address, register, data)
-        return value
+        # return value
 
     def active(self, value=None):
         if value is None:
