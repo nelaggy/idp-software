@@ -5,6 +5,9 @@ from navigation.navigator import Navigator
 from machine import Timer
 
 class OnRoadController:
+    """
+    Class for controller used at junctions apart from when picking up and dropping off boxes
+    """
     def __init__(self, line_sensors: LineSensors, wheels: Motors, servo: Servo, navigator: Navigator, on_complete) -> None:
         self.line_sensors = line_sensors
         self.wheels = wheels

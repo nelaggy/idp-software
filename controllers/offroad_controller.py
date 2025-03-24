@@ -4,8 +4,11 @@ from hardware.servo import Servo
 from micropython import schedule
 from machine import Timer
 
-# OffRoadController used at junctions when picking up and dropping off boxes
+
 class OffRoadController:
+    """
+    Class for controller used at junctions when picking up and dropping off boxes
+    """
     def __init__(self, line_sensors: LineSensors, wheels: Motors, servo: Servo, on_complete, pickup_cb) -> None:
         self.line_sensors = line_sensors
         self.wheels = wheels
