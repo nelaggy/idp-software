@@ -11,6 +11,15 @@ class ColourSensor:
         self.tcs = TCS34725(self.i2c_bus)
     
     def detect(self):
+        """
+        Detects blue/green red/yellow colours using the TCS34725 sensor.
+        
+        Arguments:
+            self
+
+        Returns:
+            bool: True if blue/green, False if red/yellow
+        """
         cct_sum = 0
         B_sum = 0
         n = 0

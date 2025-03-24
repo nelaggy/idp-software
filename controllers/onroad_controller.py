@@ -14,6 +14,7 @@ class OnRoadController:
 
         self.timer = Timer(-1)
 
+        # Initialise PID constants
         self.kp = 20
         self.ki = 1
         self.ki_mag = 10
@@ -27,6 +28,7 @@ class OnRoadController:
         self.turn_dir = 0
         self.turn_stage = 0
 
+        # Initialise target speeds for left and right wheels
         self.target_lspeed = 90
         self.target_rspeed = 90
 
