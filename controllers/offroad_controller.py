@@ -37,7 +37,7 @@ class OffRoadController:
         self.drop_flag = False
 
         # Initialise stage of the controller
-        self.stage = 0 # 0: not active, 1: moving forward, 2: picking up box, 3: reversing, 4: turning 
+        self.stage = 0 # 0: reverse on entry, 1: moving forward, 2: picking up box, 3: reversing, 4: turning 
         self.turn_stage = 0 # 0: not turning, 1: turning
         self.turn_stop = 0
         self.turn_dir = 0
