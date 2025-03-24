@@ -100,7 +100,7 @@ class MainController:
                 self.navigator.set_destination(2)
             else:
                 self.navigator.set_destination(0)
-        reverse_delay = 1200
+        reverse_delay = 1200 # set reverse after picking up/placing box for 1.2 seconds
         if self.navigator.node == 9 or self.navigator.node == 17 or self.navigator.node == 19 or self.navigator.node == 14:
             reverse_delay = 700
         elif self.navigator.node == 3 or self.navigator.node == 6:
